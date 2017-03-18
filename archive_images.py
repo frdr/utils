@@ -3,6 +3,27 @@
 Sorts image files by time - copies them into folders by year and month.
 
 Written by Friedrich C. Kischkel.
+
+From the usage info:
+
+usage: archive_images.py [-h] [-m] [-f] [-d D] [--exec FILTER]
+                         SOURCE [SOURCE ...] DESTINATION
+
+Copy images into year/month sub-folders by time they were taken. Useful to get
+some chronological orientations when copying a bulk of images from a camera's
+memory card to a local pictures folder.
+
+positional arguments:
+  SOURCE           source path(s)
+  DESTINATION      destination path
+
+optional arguments:
+  -h, --help       show this help message and exit
+  -m, --move       move file instead of copying it (default: copy)
+  -f, --force      force overwriting of existing files (default: do not
+                   overwrite)
+  -d D, --depth D  descend this deep into SOURCE directories
+  --exec FILTER    for each SRC, execute FILTER SRC DST
 """
 
 import os
@@ -10,6 +31,7 @@ import re
 import shutil
 import time
 import argparse
+import subprocess
 
 IMAGE_FILE = re.compile(r"""\.(jpe?g)|(png)|(tiff?)$""", re.IGNORECASE)
 EXIF_TIME_FORMAT = "%Y:%m:%d %H:%M:%S"
@@ -75,12 +97,18 @@ images from a camera's memory card to a local pictures folder.""")
     parser.add_argument('DESTINATION', nargs=1, help='destination path')
     parser.add_argument('-m', '--move', action='store_true', default=False, help='move file instead of copying it (default: copy)')
     parser.add_argument('-f', '--force', action='store_true', default=False, help='force overwriting of existing files (default: do not overwrite)')
-    parser.add_argument('-d', '--depth', type=int, help='descend this deep into SOURCE directories')
-    #parser.add_argument('--exec', help='execute command with args SRC DST')
+    parser.add_argument('-d', '--depth', metavar='D', type=int, help='descend this deep into SOURCE directories')
+    parser.add_argument('--exec', metavar='FILTER', dest='execext', help='for each SRC, execute FILTER SRC DST')
     ARGS = parser.parse_args()
+    print vars(ARGS)
     fct = shutil.copy2
     if ARGS.move:
         fct = shutil.move
+    if ARGS.execext:
+        def make_call(cmd):
+            """Create lambda for call to 'cmd src dst'."""
+            return lambda src, dst: subprocess.check_call(cmd.split() + [src, dst])
+        fct = make_call(ARGS.execext)
     for source in ARGS.SOURCE:
         archive_all(\
             source,\
