@@ -34,7 +34,7 @@ def time_taken(path):
     times.sort()
     return times[0]
 
-def archive_image(srcpath, filename, dstpath, overwrite=False):
+def archive_image(srcpath, filename, dstpath, overwrite=False, file_function=shutil.copy2):
     """Copy image "filename" in "path" into a subfolder "dstpath"."""
     if re.search(IMAGE_FILE, filename):
         srcpath = os.path.join(srcpath, filename)
@@ -50,15 +50,15 @@ def archive_image(srcpath, filename, dstpath, overwrite=False):
         if not overwrite and os.path.exists(os.path.join(dst, filename)):
             raise IOError('"%(path)s" already exists' % \
                 {'path': os.path.join(dst, filename)})
-        shutil.copy2(srcpath, dst)
+        file_function(srcpath, dst)
 
-def archive_all(srcpath, dstpath, overwrite=False, max_depth=None):
+def archive_all(srcpath, dstpath, overwrite=False, max_depth=None, file_function=shutil.copy2):
     """Copy files by creation time into sub-folders"""
     iteration = 0
     for current, _, files in os.walk(srcpath):
         for filename in files:
             try:
-                archive_image(current, filename, dstpath, overwrite)
+                archive_image(current, filename, dstpath, overwrite, file_function)
             except IOError, err:
                 print "ERROR: copying image: %(msg)s" % {'msg': str(err)}
         iteration += 1
@@ -73,13 +73,18 @@ Useful to get some chronological orientations when copying a bulk of
 images from a camera's memory card to a local pictures folder.""")
     parser.add_argument('SOURCE', nargs='+', help='source path(s)')
     parser.add_argument('DESTINATION', nargs=1, help='destination path')
+    parser.add_argument('-m', '--move', action='store_true', default=False, help='move file instead of copying it (default: copy)')
     parser.add_argument('-f', '--force', action='store_true', default=False, help='force overwriting of existing files (default: do not overwrite)')
     parser.add_argument('-d', '--depth', type=int, help='descend this deep into SOURCE directories')
     #parser.add_argument('--exec', help='execute command with args SRC DST')
     ARGS = parser.parse_args()
+    fct = shutil.copy2
+    if ARGS.move:
+        fct = shutil.move
     for source in ARGS.SOURCE:
         archive_all(\
             source,\
             ARGS.DESTINATION[0],\
             overwrite=ARGS.force,\
-            max_depth=ARGS.depth)
+            max_depth=ARGS.depth,\
+            file_function=fct)
