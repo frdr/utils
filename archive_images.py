@@ -2,24 +2,17 @@
 """
 Sorts image files by time - copies them into folders by year and month.
 
-Written and put in the public domain by Friedrich C. Kischkel.
+Written by Friedrich C. Kischkel.
 """
 
 import os
 import re
 import shutil
-import sys
 import time
 import argparse
 
 IMAGE_FILE = re.compile(r"""\.(jpe?g)|(png)|(tiff?)$""", re.IGNORECASE)
 EXIF_TIME_FORMAT = "%Y:%m:%d %H:%M:%S"
-
-def print_usage_info():
-    """Prints the usage info."""
-    print \
-"""Usage: archive_images SOURCE_PATHS... DESTINATION_PATH
-"""
 
 def time_taken(path):
     """Get time a picture was taken or at least file c/mtime."""
@@ -56,7 +49,7 @@ def archive_image(srcpath, filename, dstpath):
         shutil.copy(srcpath, dst)
 
 def archive_all(dstpath, dirname, names):
-    """Copy files by creation time into subfolders"""
+    """Copy files by creation time into sub-folders"""
     for filename in names:
         archive_image(dirname, filename, dstpath)
 
@@ -64,7 +57,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Copy images into year/month sub-folders by time they were taken.')
     parser.add_argument('SOURCE', nargs='+', help='source path(s)')
     parser.add_argument('DESTINATION', nargs=1, help='destination path')
-    #parser.add_argument('-o', '--overwrite', action='store_true', default=False, help='overwrite destination (default: off)')
+    #parser.add_argument('-f', '--force', action='store_true', default=False, help='force overwriting of existing files (default: do not overwrite)')
     #parser.add_argument('--exec', help='execute command with args SRC DST')
     ARGS = parser.parse_args()
     for source in ARGS.SOURCE:
