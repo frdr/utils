@@ -52,21 +52,34 @@ def archive_image(srcpath, filename, dstpath, overwrite=False):
                 {'path': os.path.join(dst, filename)})
         shutil.copy2(srcpath, dst)
 
-def archive_all(srcpath, dstpath, overwrite=False):
+def archive_all(srcpath, dstpath, overwrite=False, max_depth=None):
     """Copy files by creation time into sub-folders"""
+    iteration = 0
     for current, _, files in os.walk(srcpath):
         for filename in files:
             try:
                 archive_image(current, filename, dstpath, overwrite)
             except IOError, err:
                 print "ERROR: copying image: %(msg)s" % {'msg': str(err)}
+        iteration += 1
+        if max_depth != None and iteration > max_depth:
+            return
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Copy images into year/month sub-folders by time they were taken.')
+    parser = argparse.ArgumentParser(description="""\
+Copy images into year/month sub-folders by time they were taken.
+
+Useful to get some chronological orientations when copying a bulk of
+images from a camera's memory card to a local pictures folder.""")
     parser.add_argument('SOURCE', nargs='+', help='source path(s)')
     parser.add_argument('DESTINATION', nargs=1, help='destination path')
     parser.add_argument('-f', '--force', action='store_true', default=False, help='force overwriting of existing files (default: do not overwrite)')
+    parser.add_argument('-d', '--depth', type=int, help='descend this deep into SOURCE directories')
     #parser.add_argument('--exec', help='execute command with args SRC DST')
     ARGS = parser.parse_args()
     for source in ARGS.SOURCE:
-        archive_all(source, ARGS.DESTINATION[0], ARGS.force)
+        archive_all(\
+            source,\
+            ARGS.DESTINATION[0],\
+            overwrite=ARGS.force,\
+            max_depth=ARGS.depth)
