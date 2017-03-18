@@ -1,4 +1,4 @@
-= Collection of Tools and Utilities =
+# Collection of Tools and Utilities #
 
 Contains scripts and utilities for common tasks that I wrote myself (or
 stole in parts from other people).
