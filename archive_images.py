@@ -19,7 +19,7 @@ def time_taken(path):
     times = [
         time.localtime(os.path.getctime(path)),
         time.localtime(os.path.getmtime(path)),
-        time.localtime()
+        time.localtime() # now
     ]
     import exifread
     with open(path, 'rb') as imagefile:
@@ -28,12 +28,13 @@ def time_taken(path):
             try:
                 times.append(time.strptime(str(tags[tag]), EXIF_TIME_FORMAT))
             except KeyError, err:
-                print "WARNING: tag %(tag)s could not be retrieved from %(file)s"\
-                % {"tag": err, "file": path}
+                print \
+"WARNING: tag %(tag)s could not be retrieved from %(file)s" % \
+{"tag": err, "file": path}
     times.sort()
     return times[0]
 
-def archive_image(srcpath, filename, dstpath):
+def archive_image(srcpath, filename, dstpath, overwrite=False):
     """Copy image "filename" in "path" into a subfolder "dstpath"."""
     if re.search(IMAGE_FILE, filename):
         srcpath = os.path.join(srcpath, filename)
@@ -46,12 +47,18 @@ def archive_image(srcpath, filename, dstpath):
             os.makedirs(dst)
         except OSError:
             pass
-        shutil.copy(srcpath, dst)
+        if not overwrite and os.path.exists(os.path.join(dst, filename)):
+            raise IOError('"%(path)s" already exists' % \
+                {'path': os.path.join(dst, filename)})
+        shutil.copy2(srcpath, dst)
 
 def archive_all(dstpath, dirname, names):
     """Copy files by creation time into sub-folders"""
     for filename in names:
-        archive_image(dirname, filename, dstpath)
+        try:
+            archive_image(dirname, filename, dstpath)
+        except IOError, err:
+            print "ERROR: copying image: %(msg)s" % {'msg': str(err)}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Copy images into year/month sub-folders by time they were taken.')
