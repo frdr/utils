@@ -52,13 +52,14 @@ def archive_image(srcpath, filename, dstpath, overwrite=False):
                 {'path': os.path.join(dst, filename)})
         shutil.copy2(srcpath, dst)
 
-def archive_all(dstpath, dirname, names):
+def archive_all(srcpath, dstpath):
     """Copy files by creation time into sub-folders"""
-    for filename in names:
-        try:
-            archive_image(dirname, filename, dstpath)
-        except IOError, err:
-            print "ERROR: copying image: %(msg)s" % {'msg': str(err)}
+    for current, _, files in os.walk(srcpath):
+        for filename in files:
+            try:
+                archive_image(current, filename, dstpath)
+            except IOError, err:
+                print "ERROR: copying image: %(msg)s" % {'msg': str(err)}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Copy images into year/month sub-folders by time they were taken.')
@@ -68,4 +69,4 @@ if __name__ == "__main__":
     #parser.add_argument('--exec', help='execute command with args SRC DST')
     ARGS = parser.parse_args()
     for source in ARGS.SOURCE:
-        os.path.walk(source, archive_all, ARGS.DESTINATION[0])
+        archive_all(source, ARGS.DESTINATION[0])
