@@ -52,12 +52,12 @@ def archive_image(srcpath, filename, dstpath, overwrite=False):
                 {'path': os.path.join(dst, filename)})
         shutil.copy2(srcpath, dst)
 
-def archive_all(srcpath, dstpath):
+def archive_all(srcpath, dstpath, overwrite=False):
     """Copy files by creation time into sub-folders"""
     for current, _, files in os.walk(srcpath):
         for filename in files:
             try:
-                archive_image(current, filename, dstpath)
+                archive_image(current, filename, dstpath, overwrite)
             except IOError, err:
                 print "ERROR: copying image: %(msg)s" % {'msg': str(err)}
 
@@ -65,8 +65,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Copy images into year/month sub-folders by time they were taken.')
     parser.add_argument('SOURCE', nargs='+', help='source path(s)')
     parser.add_argument('DESTINATION', nargs=1, help='destination path')
-    #parser.add_argument('-f', '--force', action='store_true', default=False, help='force overwriting of existing files (default: do not overwrite)')
+    parser.add_argument('-f', '--force', action='store_true', default=False, help='force overwriting of existing files (default: do not overwrite)')
     #parser.add_argument('--exec', help='execute command with args SRC DST')
     ARGS = parser.parse_args()
     for source in ARGS.SOURCE:
-        archive_all(source, ARGS.DESTINATION[0])
+        archive_all(source, ARGS.DESTINATION[0], ARGS.force)
