@@ -100,7 +100,6 @@ images from a camera's memory card to a local pictures folder.""")
     parser.add_argument('-d', '--depth', metavar='D', type=int, help='descend this deep into SOURCE directories')
     parser.add_argument('--exec', metavar='FILTER', dest='execext', help='for each SRC, execute FILTER SRC DST')
     ARGS = parser.parse_args()
-    print vars(ARGS)
     fct = shutil.copy2
     if ARGS.move:
         fct = shutil.move
